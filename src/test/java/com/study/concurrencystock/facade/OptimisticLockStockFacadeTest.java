@@ -1,4 +1,4 @@
-package com.study.concurrencystock.service;
+package com.study.concurrencystock.facade;
 
 import com.study.concurrencystock.domain.Stock;
 import com.study.concurrencystock.repository.StockRepository;
@@ -8,22 +8,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@DisplayName("stock 서비스 테스트")
+@DisplayName("stock 서비스 테스트 - optimistic lock facade")
 @SpringBootTest
-class StockServiceTest {
+class OptimisticLockStockFacadeTest {
 
     @Autowired
-//    @Qualifier("badStockService")
-//    @Qualifier("synchronizedStockService")
-    @Qualifier("pessimisticLockStockService")
-    StockService stockService;
+    OptimisticLockStockFacade stockServiceFacade;
 
     @Autowired
     StockRepository stockRepository;
@@ -38,20 +34,6 @@ class StockServiceTest {
         stockRepository.deleteAll();
     }
 
-    @Test
-    @DisplayName("재고 감소 테스트")
-    void decrease() {
-        // given
-        Long productId = 1L;
-        Long quantity = 1L;
-
-        // when
-        stockService.decrease(productId, quantity);
-
-        // then
-        Stock stock = stockRepository.findById(productId).orElseThrow();
-        Assertions.assertThat(stock.getQuantity()).isEqualTo(99L);
-    }
 
     @Test
     @DisplayName("동시에 100개의 재고감소 요청")
@@ -67,7 +49,7 @@ class StockServiceTest {
         for (int i = 0; i < threadCount; i++) {
             es.submit(() -> {
                 try {
-                    stockService.decrease(productId, quantity);
+                    stockServiceFacade.decrease(productId, quantity);
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
