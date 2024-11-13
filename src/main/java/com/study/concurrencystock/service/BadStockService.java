@@ -4,6 +4,7 @@ import com.study.concurrencystock.domain.Stock;
 import com.study.concurrencystock.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -13,7 +14,7 @@ public class BadStockService implements StockService {
     private final StockRepository stockRepository;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void decrease(Long id, Long quantity) {
         // stock 조회
         Stock stock = stockRepository.findById(id)
